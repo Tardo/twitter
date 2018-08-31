@@ -45,12 +45,12 @@ if any(favorites):
     # Delete tweets one by one
     def del_favorites():
         try:
-            for favorite in favorites:
+            for status in favorites:
                 time.sleep(1)
                 print("Unliked tweet of '%s' that liked on '%s'" %
-                      (favorite.author.screen_name,
-                       favorite.created_at.strftime("%d-%m-%Y %H:%M:%S")))
-                api.destroy_favorite(favorite.id)
+                      (status.author.screen_name,
+                       status.created_at.strftime("%d-%m-%Y %H:%M:%S")))
+                api.destroy_favorite(status.id)
         except tweepy.RateLimitError:
             print("Twitter Rate Limit!! Can't use api... please, try it later.")
         print("All tweets unliked successfully!")
