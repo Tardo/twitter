@@ -1,10 +1,11 @@
+# -*- coding: utf-8 -*-
 # Copyright 2018 Alexandre Díaz <dev@redneboa.es>
 # License GPL-3.0 or later (http://www.gnu.org/licenses/gpl).
 import tweepy
 import threading
 import time
 
-API_PAG_LIMIT=900
+API_PAG_LIMIT = 900
 
 #-- Application AUTH
 CONSUMER_KEY = "PUT YOUR APP KEY HERE"
