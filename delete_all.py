@@ -33,26 +33,23 @@ class TwitterApp(object):
         return self._api
 
 
-class TwitterStatusDeleter(object):
-    def __init__(self, twitter_app, statuses):
+class TwitterDeleter(object):
+    def __init__(self, twitter_app, data):
         self._app = twitter_app
         self._condition_days = 0
         self.delay = 3
-        self.statuses = statuses
+        self.data = data
 
     def set_delay(self, delay):
         self.delay = delay
 
-    def del_status(self, status):
-        if self._can_delete_status(status):
-            print("Deleted status created at '%s'" %
-                  status.created_at.strftime("%d-%m-%Y %H:%M:%S"))
-            self._app.api.destroy_status(status.id)
+    def delete(self, data):
+        return self._can_delete_status(data)
 
     def run(self):
         try:
-            for status in self.statuses:
-                self.del_status(status)
+            for data in self.data:
+                self.delete(data)
                 time.sleep(self.delay)
             return True
         except tweepy.RateLimitError:
@@ -62,26 +59,34 @@ class TwitterStatusDeleter(object):
     def set_condition_days(self, days):
         self._condition_days = days
 
-    def _can_delete_status(self, status):
-        if self._condition_days and abs(
-                (datetime.now() - status.created_at).days) >= self._condition_days:
-            return True
-        return False
+    def _can_delete_status(self, data):
+        return self._condition_days and abs((datetime.now() - data.created_at).days) >= self._condition_days
 
-class TimelineDeleter(TwitterStatusDeleter):
+class TimelineDeleter(TwitterDeleter):
     def run(self):
         res = super(TimelineDeleter, self).run()
         if res:
             print("Timeline successfully deleted :)")
         return res
 
-class FavoritesDeleter(TwitterStatusDeleter):
+    def delete(self, data):
+        if super(TimelineDeleter, self).delete(data):
+            print("Deleted status created at '%s'" %
+                  data.created_at.strftime("%d-%m-%Y %H:%M:%S"))
+            self._app.api.destroy_status(data.id)
+
+class FavoritesDeleter(TwitterDeleter):
     def run(self):
         res = super(FavoritesDeleter, self).run()
         if res:
             print("Favorites successfully deleted :)")
         return res
 
+    def delete(self, data):
+        if super(FavoritesDeleter, self).delete(data):
+            print("Deleted favourite created at '%s'" %
+                  data.created_at.strftime("%d-%m-%Y %H:%M:%S"))
+            self._app.api.destroy_favorite(data.id)
 
 if __name__ == "__main__":
     # Default Input Params
@@ -118,7 +123,7 @@ if __name__ == "__main__":
         elif opt in ('-us', '--user-secret'):
             user_secret = arg
         elif opt in ('-fd', '--filter-days'):
-            filter_days = arg
+            filter_days = int(arg)
         elif opt in ('-ms', '--max-status-pag'):
             max_status_pag = arg
 
